@@ -18,37 +18,34 @@ namespace AppTesting
     public class FileServiceTests
     {
         private Mock<IWebHostEnvironment> _envMock;
-        private IFileService _fileService;
-        private string _webRootPath;
-        private string[] _allowedExtensions;
         private Mock<IFormFile> _fileMock;
+        private IFileService _fileService;
+        private MemoryStream _stream;
+        private string[] _allowedExtensions;
+        private string _webRootPath;
         private string _fileName;
         private string _content;
-        private MemoryStream _stream;
 
 
         public FileServiceTests()
         {
             _envMock = new Mock<IWebHostEnvironment>();
+            _fileMock = new Mock<IFormFile>();
             _webRootPath = Path.Combine(Path.GetTempPath(), "TestWebRoot");
-            _envMock.Setup(e => e.WebRootPath).Returns(_webRootPath);
-            _envMock.Setup(e => e.ContentRootPath).Returns(_webRootPath);
-            _allowedExtensions = [".jpg", ".png"];
-            _fileService = new FileService(_envMock.Object);
-
-            if (!Directory.Exists(_webRootPath))
-            {
-                Directory.CreateDirectory(_webRootPath);
-            }
         }
 
         [TestInitialize]
         public void TestInitialize()
         {
-            _fileMock = new Mock<IFormFile>();
+            _allowedExtensions = [".jpg", ".png"];
             _fileName = "test.jpg";
             _content = "fakeimagecontent";
             _stream = new MemoryStream(Encoding.UTF8.GetBytes(_content));
+
+            if (!Directory.Exists(_webRootPath))
+            {
+                Directory.CreateDirectory(_webRootPath);
+            }
 
             _fileMock.Setup(f => f.FileName).Returns(_fileName);
             _fileMock.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), default))
@@ -56,6 +53,10 @@ namespace AppTesting
                     {
                         return _stream.CopyToAsync(targetStream);
                     });
+
+            _envMock.Setup(e => e.WebRootPath).Returns(_webRootPath);
+            _envMock.Setup(e => e.ContentRootPath).Returns(_webRootPath);
+            _fileService = new FileService(_envMock.Object);
         }
 
         [TestMethod]

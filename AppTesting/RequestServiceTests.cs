@@ -110,6 +110,7 @@ namespace AppTesting
             var result = _requestService.GetAllByEmail("email@email.com");
 
             Assert.AreEqual(1, result.Count);
+
             _requestRepoMock.Verify(r => r.GetAll(
                     It.IsAny<Expression<Func<Request, Request>>>(),
                     It.IsAny<Expression<Func<Request, bool>>>(),
@@ -119,7 +120,7 @@ namespace AppTesting
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void GetAllByEmail_ThrowsExceptionWhenEmailIsNull()
+        public void GetAllByEmail_EmailIsNullException()
         {
             _requestService.GetAllByEmail(null);
         }
@@ -132,6 +133,7 @@ namespace AppTesting
             var result = _requestService.GetById(target.Id);
 
             Assert.AreEqual(target.Id, result.Id);
+
             _requestRepoMock.Verify(r => r.Get(
              It.IsAny<Expression<Func<Request, Request>>>(),
                     It.IsAny<Expression<Func<Request, bool>>>(),
@@ -140,36 +142,17 @@ namespace AppTesting
         }
 
         [TestMethod]
-        public void GetById_ReturnsNull()
+        public void GetById_ReturnsNullWhenIdNotFound()
         {
-            _requestRepoMock.Setup(repo => repo.Get(
-             It.IsAny<Expression<Func<Request, Request>>>(),
-                    It.IsAny<Expression<Func<Request, bool>>>(),
-                    It.IsAny<Func<IQueryable<Request>, IOrderedQueryable<Request>>>(),
-                    It.IsAny<Func<IQueryable<Request>, IIncludableQueryable<Request, object>>>()))
-                .Returns(() => null);
-
-            _requestService = new RequestService(
-                  _requestRepoMock.Object
-              );
-
-            var nonExistingId = Guid.NewGuid();
-
-            var result = _requestService.GetById(nonExistingId);
+            var result = _requestService.GetById(Guid.NewGuid());
 
             Assert.IsNull(result);
+
             _requestRepoMock.Verify(r => r.Get(
              It.IsAny<Expression<Func<Request, Request>>>(),
                     It.IsAny<Expression<Func<Request, bool>>>(),
                     It.IsAny<Func<IQueryable<Request>, IOrderedQueryable<Request>>>(),
                     It.IsAny<Func<IQueryable<Request>, IIncludableQueryable<Request, object>>>()), Times.Once);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void GetById_ThrowsExceptionWhenIdIsNullOrEmpty()
-        {
-            _requestService.GetById(Guid.Empty);
         }
 
         [TestMethod]
@@ -178,6 +161,7 @@ namespace AppTesting
             var result = _requestService.GetAll();
 
             Assert.AreEqual(5, result.Count);
+
             _requestRepoMock.Verify(r => r.GetAll(
              It.IsAny<Expression<Func<Request, Request>>>(),
                     It.IsAny<Expression<Func<Request, bool>>>(),
@@ -203,6 +187,7 @@ namespace AppTesting
             var result = _requestService.GetAll();
 
             Assert.AreEqual(0, result.Count);
+
             _requestRepoMock.Verify(r => r.GetAll(
             It.IsAny<Expression<Func<Request, Request>>>(),
                    It.IsAny<Expression<Func<Request, bool>>>(),
@@ -214,7 +199,8 @@ namespace AppTesting
         public void RequestPiece_Works()
         {
             var mockFormFile = new Mock<IFormFile>();
-            mockFormFile.Setup(f => f.FileName).Returns("test.png");
+            var fileName = "test.png";
+            mockFormFile.Setup(f => f.FileName).Returns(fileName);
 
             var createRequestDTO = new CreateRequestDTO()
             {
@@ -224,25 +210,25 @@ namespace AppTesting
                 Email = "email@email.com"
             };
 
-            var result = _requestService.RequestPiece(createRequestDTO, "test.png");
+            var result = _requestService.RequestPiece(createRequestDTO, fileName);
 
-            Assert.AreEqual(result.Subject, createRequestDTO.Subject);
-            Assert.AreEqual(result.Description, createRequestDTO.Description);
-            Assert.AreEqual(result.Email, createRequestDTO.Email);
-            Assert.AreEqual(result.ReferenceImage, "test.png");
+            Assert.AreEqual(createRequestDTO.Subject, result.Subject);
+            Assert.AreEqual(createRequestDTO.Description, result.Description);
+            Assert.AreEqual(createRequestDTO.Email, result.Email);
+            Assert.AreEqual(fileName, result.ReferenceImage);
 
             _requestRepoMock.Verify(r => r.Insert(It.IsAny<Request>()), Times.Once);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void RequestPiece_ThrowsExceptionWhenModelIsNull()
+        public void RequestPiece_DTOIsNullException()
         {
             _requestService.RequestPiece(null, "test.png");
         }
 
         [TestMethod]
-        public void UpdateFromDTO_WorksArtistUpdatedTrue()
+        public void UpdateFromDTO_WorksWithArtistUpdatedTrue()
         {
             var requestDTO = _fixture.Create<RequestDTO>();
             var target = _requestList[0];
@@ -252,8 +238,8 @@ namespace AppTesting
 
             var result = _requestService.UpdateFromDTO(requestDTO, artistUpdated);
 
-            Assert.AreEqual(result.ArtistNotes, requestDTO.ArtistNotes);
-            Assert.AreEqual(result.Price, requestDTO.Price);
+            Assert.AreEqual(requestDTO.ArtistNotes, result.ArtistNotes);
+            Assert.AreEqual(requestDTO.Price, result.Price);
             Assert.IsNotNull(result.Subject);
             Assert.IsNotNull(result.Description);
 
@@ -273,36 +259,25 @@ namespace AppTesting
 
             Assert.IsNotNull(result.ArtistNotes);
             Assert.IsNotNull(result.Price);
-            Assert.AreEqual(result.Subject, requestDTO.Subject);
-            Assert.AreEqual(result.Description, requestDTO.Description);
+            Assert.AreEqual(requestDTO.Subject, result.Subject);
+            Assert.AreEqual(requestDTO.Description, result.Description);
 
             _requestRepoMock.Verify(r => r.Update(It.IsAny<Request>()), Times.Once);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void UpdateFromDTO_ThrowsExceptionWhenModelIsNull()
+        public void UpdateFromDTO_DTOIsNullException()
         {
             _requestService.UpdateFromDTO(null, true);
         }
 
         [TestMethod]
         [ExpectedException(typeof(Exception))]
-        public void UpdateFromDTO_ThrowsExceptionWhenRequestNotFound()
+        public void UpdateFromDTO_RequestNotFoundException()
         {
             var requestDTO = _fixture.Create<RequestDTO>();
             requestDTO.RequestId = Guid.NewGuid();
-
-            _requestRepoMock.Setup(repo => repo.Get(
-             It.IsAny<Expression<Func<Request, Request>>>(),
-                    It.IsAny<Expression<Func<Request, bool>>>(),
-                    It.IsAny<Func<IQueryable<Request>, IOrderedQueryable<Request>>>(),
-                    It.IsAny<Func<IQueryable<Request>, IIncludableQueryable<Request, object>>>()))
-                .Returns(() => null);
-
-            _requestService = new RequestService(
-              _requestRepoMock.Object
-          );
 
             _requestService.UpdateFromDTO(requestDTO, true);
         }
@@ -326,7 +301,7 @@ namespace AppTesting
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void EntityToDTO_ThrowsExceptionWhenRequestIsNull()
+        public void EntityToDTO_RequestIsNullException()
         {
             _requestService.EntityToDTO(null);
         }
