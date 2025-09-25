@@ -25,9 +25,7 @@ namespace AppTesting
         private Fixture _fixture;
         private IArtPieceService _artPieceService;
         private List<ArtPiece> _artPieceList;
-        private ArtPiece? _capturedArtPieceInsert;
         private ArtPiece? _capturedArtPieceUpdate;
-        private ArtPiece? _capturedArtPieceDelete;
 
         public ArtPieceServiceTests()
         {
@@ -95,7 +93,6 @@ namespace AppTesting
 
             _artPieceRepoMock
                 .Setup(repo => repo.Insert(It.IsAny<ArtPiece>()))
-                .Callback<ArtPiece>(ap => _capturedArtPieceInsert = ap)
                 .Returns((ArtPiece ap) => ap);
 
 
@@ -106,7 +103,6 @@ namespace AppTesting
 
             _artPieceRepoMock
                .Setup(repo => repo.Delete(It.IsAny<ArtPiece>()))
-               .Callback<ArtPiece>(ap => _capturedArtPieceDelete = ap)
                .Returns((ArtPiece ap) => ap);
 
             _artPieceService = new ArtPieceService(

@@ -25,7 +25,6 @@ namespace AppTesting
         private Fixture _fixture;
         private IOrderService _orderService;
         private List<Order> _orderList;
-        private Order? _capturedOrderInsert;
 
         public OrderServiceTests()
         {
@@ -94,7 +93,6 @@ namespace AppTesting
 
             _orderRepoMock
                 .Setup(repo => repo.Insert(It.IsAny<Order>()))
-                .Callback<Order>(o => _capturedOrderInsert = o)
                 .Returns((Order o) => o);
 
             _orderService = new OrderService(

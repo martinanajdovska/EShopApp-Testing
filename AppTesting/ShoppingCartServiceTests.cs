@@ -25,7 +25,6 @@ namespace AppTesting
         private Fixture _fixture;
         private IShoppingCartService _shoppingCartService;
         private List<ShoppingCart> _shoppingCartList;
-        private ShoppingCart? _capturedShoppingCartInsert;
 
         public ShoppingCartServiceTests()
         {
@@ -67,7 +66,6 @@ namespace AppTesting
 
             _shoppingCartRepoMock
                 .Setup(repo => repo.Insert(It.IsAny<ShoppingCart>()))
-                .Callback<ShoppingCart>(sc => _capturedShoppingCartInsert = sc)
                 .Returns((ShoppingCart sc) => sc);
 
             _shoppingCartService = new ShoppingCartService(
