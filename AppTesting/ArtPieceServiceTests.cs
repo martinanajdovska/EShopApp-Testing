@@ -41,14 +41,14 @@ namespace AppTesting
             _artPieceList = _fixture.CreateMany<ArtPiece>(5).ToList();
 
             _artPieceRepoMock.Setup(repo => repo.Get(
-             It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
-             It.IsAny<Expression<Func<ArtPiece, bool>>>(),
-             It.IsAny<Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>>(),
-             It.IsAny<Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>>()))
-         .Returns((Expression<Func<ArtPiece, ArtPiece>> selector,
-                   Expression<Func<ArtPiece, bool>>? predicate,
-                   Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>? orderBy,
-                   Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>? include) =>
+                 It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
+                 It.IsAny<Expression<Func<ArtPiece, bool>>>(),
+                 It.IsAny<Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>>(),
+                 It.IsAny<Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>>()))
+             .Returns((Expression<Func<ArtPiece, ArtPiece>> selector,
+                       Expression<Func<ArtPiece, bool>>? predicate,
+                       Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>? orderBy,
+                       Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>? include) =>
          {
              var query = _artPieceList.AsQueryable();
              if (include != null)
@@ -118,6 +118,7 @@ namespace AppTesting
             var result = _artPieceService.GetAll();
 
             Assert.AreEqual(5, result.Count);
+
             _artPieceRepoMock.Verify(r => r.GetAll(
                     It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                     It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -145,6 +146,7 @@ namespace AppTesting
             var result = _artPieceService.GetAll();
 
             Assert.AreEqual(0, result.Count);
+
             _artPieceRepoMock.Verify(r => r.GetAll(
                    It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                    It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -161,6 +163,7 @@ namespace AppTesting
             var result = _artPieceService.GetAllByName("name");
 
             Assert.AreEqual(2, result.Count);
+
             _artPieceRepoMock.Verify(r => r.GetAll(
                    It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                    It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -176,6 +179,7 @@ namespace AppTesting
             var result = _artPieceService.GetById(target.Id);
 
             Assert.AreEqual(target.Id, result.Id);
+
             _artPieceRepoMock.Verify(r => r.Get(
                    It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                    It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -184,26 +188,12 @@ namespace AppTesting
         }
 
         [TestMethod]
-        public void GetById_ReturnsNull()
+        public void GetById_ReturnsNullWhenIdNotFound()
         {
-            _artPieceRepoMock.Setup(repo => repo.Get(
-                It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
-                It.IsAny<Expression<Func<ArtPiece, bool>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>>()))
-                .Returns(() => null);
-
-            _artPieceService = new ArtPieceService(
-                _artPieceRepoMock.Object,
-                _shoppingCartItemRepoMock.Object,
-                _shoppingCartServiceMock.Object
-            );
-
-            var nonExistingId = Guid.NewGuid();
-
-            var result = _artPieceService.GetById(nonExistingId);
+            var result = _artPieceService.GetById(Guid.NewGuid());
 
             Assert.IsNull(result);
+
             _artPieceRepoMock.Verify(r => r.Get(
                   It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                   It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -215,7 +205,8 @@ namespace AppTesting
         public void Insert_Works()
         {
             var mockFormFile = new Mock<IFormFile>();
-            mockFormFile.Setup(f => f.FileName).Returns("test.png");
+            string fileName = "test.png";
+            mockFormFile.Setup(f => f.FileName).Returns(fileName);
 
             var artPieceDTO = new ArtPieceDTO()
             {
@@ -224,20 +215,19 @@ namespace AppTesting
                 ImageFile = mockFormFile.Object
             };
 
-            string fileName = "test.png";
-
             var result = _artPieceService.Insert(artPieceDTO, fileName);
 
             Assert.AreEqual(artPieceDTO.Name, result.Name);
             Assert.AreEqual(artPieceDTO.Price, result.Price);
             Assert.AreEqual(fileName, result.Image);
             Assert.IsTrue(result.IsAvailable);
+
             _artPieceRepoMock.Verify(r => r.Insert(It.IsAny<ArtPiece>()), Times.Once);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void Insert_ThrowsExceptionWhenDtoIsNull()
+        public void Insert_DTOIsNullException()
         {
             _artPieceService.Insert(null, "filename.png");
         }
@@ -262,6 +252,7 @@ namespace AppTesting
             Assert.AreEqual(updatedArtPiece.Price, result.Price);
             Assert.AreEqual(updatedArtPiece.IsAvailable, result.IsAvailable);
             Assert.AreEqual(updatedArtPiece.Image, result.Image);
+
             _artPieceRepoMock.Verify(r => r.Get(
                    It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                    It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -272,22 +263,9 @@ namespace AppTesting
 
         [TestMethod]
         [ExpectedException(typeof(Exception))]
-        public void Update_ThrowsExceptionWhenArtPieceDoesNotExist()
+        public void Update_ArtPieceNotFoundException()
         {
             var artPiece = _fixture.Create<ArtPiece>();
-
-            _artPieceRepoMock.Setup(repo => repo.Get(
-                It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
-                It.IsAny<Expression<Func<ArtPiece, bool>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>>()))
-                .Returns(() => null);
-
-            _artPieceService = new ArtPieceService(
-                _artPieceRepoMock.Object,
-                _shoppingCartItemRepoMock.Object,
-                _shoppingCartServiceMock.Object
-            );
 
             _artPieceService.Update(artPiece);
         }
@@ -302,6 +280,7 @@ namespace AppTesting
             _artPieceService.ChangeAvailable(artPiece);
 
             Assert.IsFalse(_capturedArtPieceUpdate.IsAvailable);
+
             _artPieceRepoMock.Verify(r => r.Update(It.IsAny<ArtPiece>()), Times.Once);
         }
 
@@ -313,7 +292,8 @@ namespace AppTesting
 
             var result = _artPieceService.DeleteById(target.Id);
 
-            Assert.AreEqual(result.Id, target.Id);
+            Assert.AreEqual(target.Id, result.Id);
+
             _artPieceRepoMock.Verify(r => r.Get(
                    It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                    It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -324,25 +304,9 @@ namespace AppTesting
 
         [TestMethod]
         [ExpectedException(typeof(Exception))]
-
-        public void DeleteById_ThrowsException()
+        public void DeleteById_IdNotFoundException()
         {
-            var artPiece = _fixture.Create<ArtPiece>();
-
-            _artPieceRepoMock.Setup(repo => repo.Get(
-                It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
-                It.IsAny<Expression<Func<ArtPiece, bool>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>>()))
-                .Returns(() => null);
-
-            _artPieceService = new ArtPieceService(
-                _artPieceRepoMock.Object,
-                _shoppingCartItemRepoMock.Object,
-                _shoppingCartServiceMock.Object
-            );
-
-            _artPieceService.DeleteById(artPiece.Id);
+            _artPieceService.DeleteById(Guid.NewGuid());
         }
 
         [TestMethod]
@@ -404,14 +368,14 @@ namespace AppTesting
             _shoppingCartServiceMock.Setup(s => s.GetByUserId(Guid.Parse(shoppingCart.OwnerId))).Returns(shoppingCart);
 
             _shoppingCartItemRepoMock.Setup(repo => repo.Get(
-              It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItem>>>(),
-              It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()))
-          .Returns((Expression<Func<ShoppingCartItem, ShoppingCartItem>> selector,
-                    Expression<Func<ShoppingCartItem, bool>>? predicate,
-                    Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>? orderBy,
-                    Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>? include) =>
+                  It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItem>>>(),
+                  It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()))
+              .Returns((Expression<Func<ShoppingCartItem, ShoppingCartItem>> selector,
+                        Expression<Func<ShoppingCartItem, bool>>? predicate,
+                        Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>? orderBy,
+                        Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>? include) =>
           {
               var query = shoppingCartItemList.AsQueryable();
               if (include != null)
@@ -449,6 +413,7 @@ namespace AppTesting
             Assert.AreEqual(artPiece.Id, insertedItem.ArtPiece.Id);
             Assert.AreEqual(shoppingCart.Id, insertedItem.ShoppingCart.Id);
             Assert.AreEqual(quantity + 1, insertedItem.Quantity);
+
             _artPieceRepoMock.Verify(r => r.Get(
                    It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
                    It.IsAny<Expression<Func<ArtPiece, bool>>>(),
@@ -463,25 +428,10 @@ namespace AppTesting
         [ExpectedException(typeof(Exception))]
         public void AddProductToShoppingCart_ArtPieceNotFoundException()
         {
-            var artPiece = _fixture.Create<ArtPiece>();
             var shoppingCart = _fixture.Create<ShoppingCart>();
             shoppingCart.OwnerId = Guid.NewGuid().ToString();
 
-
-            _artPieceRepoMock.Setup(repo => repo.Get(
-                It.IsAny<Expression<Func<ArtPiece, ArtPiece>>>(),
-                It.IsAny<Expression<Func<ArtPiece, bool>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IOrderedQueryable<ArtPiece>>>(),
-                It.IsAny<Func<IQueryable<ArtPiece>, IIncludableQueryable<ArtPiece, object>>>()))
-                .Returns(() => null);
-
-            _artPieceService = new ArtPieceService(
-                _artPieceRepoMock.Object,
-                _shoppingCartItemRepoMock.Object,
-                _shoppingCartServiceMock.Object
-            );
-
-            _artPieceService.AddProductToShoppingCart(artPiece.Id, Guid.Parse(shoppingCart.OwnerId), 1);
+            _artPieceService.AddProductToShoppingCart(Guid.NewGuid(), Guid.Parse(shoppingCart.OwnerId), 1);
         }
 
         [TestMethod]
@@ -490,10 +440,8 @@ namespace AppTesting
         {
             var artPieceList = _fixture.CreateMany<ArtPiece>(5).ToList();
             var artPiece = artPieceList[0];
-            var shoppingCart = _fixture.Create<ShoppingCart>();
-            shoppingCart.OwnerId = Guid.NewGuid().ToString();
 
-            _shoppingCartServiceMock.Setup(s => s.GetByUserId(Guid.Parse(shoppingCart.OwnerId))).Returns<ShoppingCart>(null);
+            _shoppingCartServiceMock.Setup(s => s.GetByUserId(It.IsAny<Guid>())).Returns<ShoppingCart>(null);
 
             _artPieceService = new ArtPieceService(
                 _artPieceRepoMock.Object,
@@ -501,7 +449,7 @@ namespace AppTesting
                 _shoppingCartServiceMock.Object
             );
 
-            _artPieceService.AddProductToShoppingCart(artPiece.Id, Guid.Parse(shoppingCart.OwnerId), 1);
+            _artPieceService.AddProductToShoppingCart(artPiece.Id, Guid.NewGuid(), 1);
         }
     }
 }

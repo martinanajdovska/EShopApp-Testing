@@ -40,14 +40,14 @@ namespace AppTesting
             _shoppingCartList = _fixture.CreateMany<ShoppingCart>(5).ToList();
 
             _shoppingCartRepoMock.Setup(repo => repo.Get(
-             It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
-             It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()))
-         .Returns((Expression<Func<ShoppingCart, ShoppingCart>> selector,
-                   Expression<Func<ShoppingCart, bool>>? predicate,
-                   Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>? orderBy,
-                   Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>? include) =>
+                 It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
+                 It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()))
+             .Returns((Expression<Func<ShoppingCart, ShoppingCart>> selector,
+                       Expression<Func<ShoppingCart, bool>>? predicate,
+                       Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>? orderBy,
+                       Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>? include) =>
          {
              var query = _shoppingCartList.AsQueryable();
              if (include != null)
@@ -84,39 +84,26 @@ namespace AppTesting
             var result = _shoppingCartService.GetByUserId(Guid.Parse(target.OwnerId));
 
             Assert.AreEqual(target.OwnerId, result.OwnerId);
+
             _shoppingCartRepoMock.Verify(r => r.Get(
-             It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
-             It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
+                 It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
+                 It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
         }
 
         [TestMethod]
-        public void GetByUserId_ReturnsNull()
+        public void GetByUserId_ReturnsNullWhenIdNotFound()
         {
-            _shoppingCartRepoMock.Setup(repo => repo.Get(
-             It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
-             It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()))
-                .Returns(() => null);
-
-            _shoppingCartService = new ShoppingCartService(
-                _shoppingCartRepoMock.Object,
-                _shoppingCartItemRepoMock.Object,
-                _orderRepoMock.Object
-            );
-
-            var nonExistingId = Guid.NewGuid();
-
-            var result = _shoppingCartService.GetByUserId(nonExistingId);
+            var result = _shoppingCartService.GetByUserId(Guid.NewGuid());
 
             Assert.IsNull(result);
+
             _shoppingCartRepoMock.Verify(r => r.Get(
-             It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
-             It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
+                 It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
+                 It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
         }
 
         [TestMethod]
@@ -125,6 +112,7 @@ namespace AppTesting
             var result = _shoppingCartService.Insert();
 
             Assert.IsNotNull(result);
+
             _shoppingCartRepoMock.Verify(r => r.Insert(It.IsAny<ShoppingCart>()), Times.Once);
         }
 
@@ -149,14 +137,14 @@ namespace AppTesting
             shoppingCartItemList[2].ShoppingCart.Id = target.Id;
 
             _shoppingCartItemRepoMock.Setup(repo => repo.GetAll(
-              It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
-              It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()))
-          .Returns((Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>> selector,
-                    Expression<Func<ShoppingCartItem, bool>>? predicate,
-                    Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>? orderBy,
-                    Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>? include) =>
+                  It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
+                  It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()))
+              .Returns((Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>> selector,
+                        Expression<Func<ShoppingCartItem, bool>>? predicate,
+                        Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>? orderBy,
+                        Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>? include) =>
           {
               var query = shoppingCartItemList.AsQueryable();
               if (include != null)
@@ -182,41 +170,24 @@ namespace AppTesting
             var result = _shoppingCartService.GetByUserIdWithIncludedProducts(Guid.Parse(target.OwnerId));
 
             Assert.AreEqual(3, result.ShoppingCartItemsDTO.Count);
+
             _shoppingCartRepoMock.Verify(r => r.Get(
-             It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
-             It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
-             It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
+                 It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
+                 It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
+                 It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
             _shoppingCartItemRepoMock.Verify(r => r.GetAll(
-              It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
-              It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()), Times.Once);
+                  It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
+                  It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()), Times.Once);
         }
 
         [TestMethod]
         [ExpectedException(typeof(Exception))]
         public void GetByUserIdWithIncludedProducts_ShoppingCartDoesntExistException()
         {
-            var target = _shoppingCartList[0];
-            target.OwnerId = Guid.NewGuid().ToString();
-            target.Id = Guid.NewGuid();
-
-            _shoppingCartRepoMock.Setup(repo => repo.Get(
-                It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
-                 It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
-                 It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
-                 It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()))
-                .Returns(() => null);
-
-
-            _shoppingCartService = new ShoppingCartService(
-                _shoppingCartRepoMock.Object,
-                _shoppingCartItemRepoMock.Object,
-                _orderRepoMock.Object
-            );
-
-            _shoppingCartService.GetByUserIdWithIncludedProducts(Guid.Parse(target.OwnerId));
+            _shoppingCartService.GetByUserIdWithIncludedProducts(Guid.NewGuid());
         }
 
         [TestMethod]
@@ -231,11 +202,11 @@ namespace AppTesting
             var shoppingCartItemList = _fixture.CreateMany<ShoppingCartItem>(3).ToList();
 
             _shoppingCartItemRepoMock.Setup(repo => repo.GetAll(
-              It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
-              It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()))
-                .Returns(() => Enumerable.Empty<ShoppingCartItemDTO>());
+                  It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
+                  It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()))
+                    .Returns(() => Enumerable.Empty<ShoppingCartItemDTO>());
 
 
             _shoppingCartService = new ShoppingCartService(
@@ -247,16 +218,17 @@ namespace AppTesting
             var result = _shoppingCartService.GetByUserIdWithIncludedProducts(Guid.Parse(target.OwnerId));
 
             Assert.AreEqual(0, result.TotalPrice);
+
             _shoppingCartRepoMock.Verify(r => r.Get(
-            It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
-            It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
-            It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
-            It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
+                It.IsAny<Expression<Func<ShoppingCart, ShoppingCart>>>(),
+                It.IsAny<Expression<Func<ShoppingCart, bool>>>(),
+                It.IsAny<Func<IQueryable<ShoppingCart>, IOrderedQueryable<ShoppingCart>>>(),
+                It.IsAny<Func<IQueryable<ShoppingCart>, IIncludableQueryable<ShoppingCart, object>>>()), Times.Once);
             _shoppingCartItemRepoMock.Verify(r => r.GetAll(
-              It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
-              It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
-              It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()), Times.Once);
+                  It.IsAny<Expression<Func<ShoppingCartItem, ShoppingCartItemDTO>>>(),
+                  It.IsAny<Expression<Func<ShoppingCartItem, bool>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IOrderedQueryable<ShoppingCartItem>>>(),
+                  It.IsAny<Func<IQueryable<ShoppingCartItem>, IIncludableQueryable<ShoppingCartItem, object>>>()), Times.Once);
         }
 
     }
