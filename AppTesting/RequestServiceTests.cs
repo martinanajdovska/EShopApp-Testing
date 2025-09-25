@@ -25,8 +25,6 @@ namespace AppTesting
         private Fixture _fixture;
         private IRequestService _requestService;
         private List<Request> _requestList;
-        private Request? _capturedRequestInsert;
-        private Request? _capturedRequestUpdate;
 
         public RequestServiceTests()
         {
@@ -92,12 +90,10 @@ namespace AppTesting
 
             _requestRepoMock
                 .Setup(repo => repo.Insert(It.IsAny<Request>()))
-                .Callback<Request>(req => _capturedRequestInsert = req)
                 .Returns((Request req) => req);
 
             _requestRepoMock
                 .Setup(repo => repo.Update(It.IsAny<Request>()))
-                .Callback<Request>(req => _capturedRequestUpdate = req)
                 .Returns((Request req) => req);
 
             _requestService = new RequestService(
